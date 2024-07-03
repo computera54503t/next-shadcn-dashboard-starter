@@ -22,8 +22,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_BUILD_PATH: ${{ secrets.TEMP_FILE_PATH }}
-          DEPLOY_SCRIPT_PATH: ${{ secrets.DEPLOY_SH_PATH }}
+          VPS_BUILD_PATH: /root/build
+          DEPLOY_SCRIPT_PATH: /root/deploy.sh
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
