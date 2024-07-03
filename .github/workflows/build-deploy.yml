@@ -30,10 +30,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
           # Clean the build directory on the VPS
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $TEMP_FILE_PATH/.next"
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BUILD_PATH/.next"
 
           # Upload the new build
-          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$TEMP_FILE_PATH
+          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
           # Execute the deploy script
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "sh $DEPLOY_SH_PATH"
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "sh $DEPLOY_SCRIPT_PATH"
