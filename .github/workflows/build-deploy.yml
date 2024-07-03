@@ -14,15 +14,20 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
-      - name: Deploy to VPS
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_PROJECT_PATH/.next"
-          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_PROJECT_PATH
+      - name: Upload production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: build-artifacts
+          path: build-artifacts.tar.gz
+      # - name: Deploy to VPS
+      #   env:
+      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+      #     VPS_HOST: ${{ secrets.VPS_HOST }}
+      #     VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+      #   run: |
+      #     mkdir -p ~/.ssh
+      #     echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+      #     chmod 600 ~/.ssh/id_rsa
+      #     ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_PROJECT_PATH/.next"
+      #     scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_PROJECT_PATH
