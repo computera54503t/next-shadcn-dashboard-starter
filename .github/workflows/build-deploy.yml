@@ -22,7 +22,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_BUILD_PATH: ${{ secrets.TEMP_FILE_PATH }}
+          VPS_BUILD_PATH: /root/build
           VPS_BLUE_PATH: /root/next-app-blue
           VPS_GREEN_PATH: /root/next-app-green
           PM2: /root/.nvm/versions/node/v20.15.0/bin/pm2
