@@ -1,0 +1,28 @@
+name: Build and Deploy Next.js App
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_PROJECT_PATH/.next"
+          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_PROJECT_PATH
