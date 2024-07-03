@@ -22,9 +22,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_BUILD_PATH: /root/build
-          VPS_BLUE_PATH: /root/next-app-blue
-          VPS_GREEN_PATH: /root/next-app-green
+          VPS_BUILD_PATH: ${{ secrets.TEMP_FILE_PATH }}
+          DEPLOY_SCRIPT_PATH: ${{ secrets.DEPLOY_SH_PATH }}
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -36,34 +35,5 @@ jobs:
           # Upload the new build
           scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
-          # Source the profile to ensure PM2 is available
-          SSH_COMMANDS=$(cat << 'ENDSSH'
-          source ~/.profile
-          cd ~
-          GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
-          if [ "$GREEN_STATUS" = "online" ]; then
-            # Deploy to blue
-            rm -rf next-app-blue/.next
-            cp -r build/.next next-app-blue/
-            /root/.nvm/versions/node/v20.15.0/bin/pm2 start 2
-            BLUE_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show blue | grep 'status' | awk '{print $4}')
-            if [ "$BLUE_STATUS" = "online" ]; then
-              /root/.nvm/versions/node/v20.15.0/bin/pm2 stop 1
-            else
-              echo "Failed to start blue. Keeping green running."
-            fi
-          else
-            # Deploy to green
-            rm -rf next-app-green/.next
-            cp -r build/.next next-app-green/
-            /root/.nvm/versions/node/v20.15.0/bin/pm2 start 1
-            GREEN_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show green | grep 'status' | awk '{print $4}')
-            if [ "$GREEN_STATUS" = "online" ]; then
-              /root/.nvm/versions/node/v20.15.0/bin/pm2 stop 2
-            else
-              echo "Failed to start green. Keeping blue running."
-            fi
-          fi
-          ENDSSH
-          )
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "$SSH_COMMANDS"
+          # Execute the deploy script
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "$DEPLOY_SCRIPT_PATH"
