@@ -14,11 +14,20 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
-      - name: Upload production artifacts
-        uses: actions/upload-artifact@v2
+      # - name: Upload production artifacts
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: build-artifacts
+      #     path: .next
+      - name: Upload to vps
+        uses: moonpathbg/scp_uploader@latest
         with:
-          name: build-artifacts
-          path: .next
+            host: ${{ secrets.VPS_HOST }}
+            port: 22
+            username: ${{ secrets.VPS_USERNAME }}
+            key : ${{ secrets.SSH_PRIVATE_KEY }}
+            source: ".next"
+            target: ${{ secrets.SSH_PRIVATE_KEY }}
       # - name: Deploy to VPS
       #   env:
       #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
