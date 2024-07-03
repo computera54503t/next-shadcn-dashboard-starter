@@ -8,35 +8,28 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Install Dependencies
-        run: npm install
-      - name: Build
-        run: npm run build
+      # - name: Checkout
+      #   uses: actions/checkout@v3
+      # - name: Install Dependencies
+      #   run: npm install
+      # - name: Build
+      #   run: npm run build
       # - name: Upload production artifacts
       #   uses: actions/upload-artifact@v2
       #   with:
       #     name: build-artifacts
       #     path: .next
-      - name: Upload to vps
-        uses: moonpathbg/scp_uploader@latest
-        with:
-            host: ${{ secrets.VPS_HOST }}
-            port: 22
-            username: ${{ secrets.VPS_USERNAME }}
-            key : ${{ secrets.SSH_PRIVATE_KEY }}
-            source: ".next"
-            target: ${{ secrets.SSH_PRIVATE_KEY }}
-      # - name: Deploy to VPS
-      #   env:
-      #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
-      #     VPS_HOST: ${{ secrets.VPS_HOST }}
-      #     VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
-      #   run: |
-      #     mkdir -p ~/.ssh
-      #     echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-      #     chmod 600 ~/.ssh/id_rsa
+      
+      - name: Deploy to VPS
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "mkdir /root/hello"
       #     ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_PROJECT_PATH/.next"
       #     scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_PROJECT_PATH
