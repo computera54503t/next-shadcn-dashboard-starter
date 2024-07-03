@@ -23,9 +23,6 @@ jobs:
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_BUILD_PATH: /root/build
-          VPS_BLUE_PATH: /root/next-app-blue
-          VPS_GREEN_PATH: /root/next-app-green
-          PM2: /root/.nvm/versions/node/v20.15.0/bin/pm2
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
@@ -37,14 +34,12 @@ jobs:
           # # Upload the new build
           # scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
-          
           SSH_COMMANDS=$(cat << 'ENDSSH'
-          pm2 = /root/.nvm/versions/node/v20.15.0/bin/pm2
           GREEN_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show green | grep 'status' | awk '{print $4}')
           if [ "$GREEN_STATUS" = "online" ]; then
             # Deploy to blue
-            rm -rf $VPS_BLUE_PATH/.next
-            cp -r /root/build/.next $VPS_BLUE_PATH/
+            rm -rf /root/next-app-blue.next
+            cp -r /root/build/.next /root/next-app-blue
             /root/.nvm/versions/node/v20.15.0/bin/pm2 start blue
             BLUE_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show blue | grep 'status' | awk '{print $4}')
             if [ "$BLUE_STATUS" = "online" ]; then
@@ -54,8 +49,8 @@ jobs:
             fi
           else
             # Deploy to green
-            rm -rf $VPS_GREEN_PATH/.next
-            cp -r /root/build/.next $VPS_GREEN_PATH/
+            rm -rf /root/next-app-green/.next
+            cp -r /root/build/.next /root/next-app-green
             /root/.nvm/versions/node/v20.15.0/bin/pm2 start green
             GREEN_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show green | grep 'status' | awk '{print $4}')
             if [ "$GREEN_STATUS" = "online" ]; then
