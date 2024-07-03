@@ -36,29 +36,33 @@ jobs:
           # Upload the new build
           scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
-          # Check if green is online
-          GREEN_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show green | grep 'status' | awk '{print \$4}'")
-          
+          # Source the profile to ensure PM2 is available
+          SSH_COMMANDS=$(cat << 'ENDSSH'
+          source ~/.profile
+          GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
           if [ "$GREEN_STATUS" = "online" ]; then
             # Deploy to blue
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BLUE_PATH/.next"
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "cp -r $VPS_BUILD_PATH/.next $VPS_BLUE_PATH/"
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 start blue"
-            BLUE_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show blue | grep 'status' | awk '{print \$4}'")
+            rm -rf $VPS_BLUE_PATH/.next
+            cp -r $VPS_BUILD_PATH/.next $VPS_BLUE_PATH/
+            pm2 start blue
+            BLUE_STATUS=$(pm2 show blue | grep 'status' | awk '{print $4}')
             if [ "$BLUE_STATUS" = "online" ]; then
-              ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 stop green"
+              pm2 stop green
             else
               echo "Failed to start blue. Keeping green running."
             fi
           else
             # Deploy to green
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_GREEN_PATH/.next"
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "cp -r $VPS_BUILD_PATH/.next $VPS_GREEN_PATH/"
-            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 start green"
-            GREEN_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show green | grep 'status' | awk '{print \$4}'")
+            rm -rf $VPS_GREEN_PATH/.next
+            cp -r $VPS_BUILD_PATH/.next $VPS_GREEN_PATH/
+            pm2 start green
+            GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
             if [ "$GREEN_STATUS" = "online" ]; then
-              ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 stop blue"
+              pm2 stop blue
             else
               echo "Failed to start green. Keeping blue running."
             fi
           fi
+          ENDSSH
+          )
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "$SSH_COMMANDS"
