@@ -18,7 +18,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: build-artifacts
-          path: build-artifacts.tar.gz
+          path: .next
       # - name: Deploy to VPS
       #   env:
       #     SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
