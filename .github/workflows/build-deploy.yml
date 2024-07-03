@@ -8,14 +8,14 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # - name: Checkout
-      #   uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
 
-      # - name: Install Dependencies
-      #   run: npm install
+      - name: Install Dependencies
+        run: npm install
 
-      # - name: Build
-      #   run: npm run build
+      - name: Build
+        run: npm run build
 
       - name: Deploy to VPS
         env:
@@ -28,11 +28,11 @@ jobs:
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          # # Clean the build directory on the VPS
-          # ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BUILD_PATH/.next"
+          # Clean the build directory on the VPS
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BUILD_PATH/.next"
 
-          # # Upload the new build
-          # scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
+          # Upload the new build
+          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
           SSH_COMMANDS=$(cat << 'ENDSSH'
           GREEN_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show green | grep 'status' | awk '{print $4}')
