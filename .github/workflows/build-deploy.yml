@@ -39,16 +39,16 @@ jobs:
 
           
           SSH_COMMANDS=$(cat << 'ENDSSH'
-          
-          GREEN_STATUS=$($PM2 show green | grep 'status' | awk '{print $4}')
+          pm2 = /root/.nvm/versions/node/v20.15.0/bin/pm2
+          GREEN_STATUS=$($pm2 show green | grep 'status' | awk '{print $4}')
           if [ "$GREEN_STATUS" = "online" ]; then
             # Deploy to blue
             rm -rf $VPS_BLUE_PATH/.next
             cp -r /root/build/.next $VPS_BLUE_PATH/
-            $PM2 start blue
-            BLUE_STATUS=$($PM2 show blue | grep 'status' | awk '{print $4}')
+            $pm2 start blue
+            BLUE_STATUS=$($pm2 show blue | grep 'status' | awk '{print $4}')
             if [ "$BLUE_STATUS" = "online" ]; then
-              $PM2 stop green
+              $pm2 stop green
             else
               echo "Failed to start blue. Keeping green running."
             fi
@@ -56,10 +56,10 @@ jobs:
             # Deploy to green
             rm -rf $VPS_GREEN_PATH/.next
             cp -r /root/build/.next $VPS_GREEN_PATH/
-            $PM2 start green
-            GREEN_STATUS=$($PM2 show green | grep 'status' | awk '{print $4}')
+            $pm2 start green
+            GREEN_STATUS=$($pm2 show green | grep 'status' | awk '{print $4}')
             if [ "$GREEN_STATUS" = "online" ]; then
-              $PM2 stop blue
+              $pm2 stop blue
             else
               echo "Failed to start green. Keeping blue running."
             fi
