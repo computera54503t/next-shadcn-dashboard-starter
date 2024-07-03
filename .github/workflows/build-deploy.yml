@@ -39,26 +39,27 @@ jobs:
           # Source the profile to ensure PM2 is available
           SSH_COMMANDS=$(cat << 'ENDSSH'
           source ~/.profile
+          cd ~
           GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
           if [ "$GREEN_STATUS" = "online" ]; then
             # Deploy to blue
-            rm -rf $VPS_BLUE_PATH/.next
-            cp -r $VPS_BUILD_PATH/.next $VPS_BLUE_PATH/
-            pm2 start blue
+            rm -rf next-app-blue/.next
+            cp -r build/.next next-app-blue/
+            pm2 start 2
             BLUE_STATUS=$(pm2 show blue | grep 'status' | awk '{print $4}')
             if [ "$BLUE_STATUS" = "online" ]; then
-              pm2 stop green
+              pm2 stop 1
             else
               echo "Failed to start blue. Keeping green running."
             fi
           else
             # Deploy to green
-            rm -rf $VPS_GREEN_PATH/.next
-            cp -r $VPS_BUILD_PATH/.next $VPS_GREEN_PATH/
-            pm2 start green
+            rm -rf next-app-green/.next
+            cp -r build/.next next-app-green/
+            pm2 start 1
             GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
             if [ "$GREEN_STATUS" = "online" ]; then
-              pm2 stop blue
+              pm2 stop 2
             else
               echo "Failed to start green. Keeping blue running."
             fi
