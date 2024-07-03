@@ -10,26 +10,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
       - name: Install Dependencies
         run: npm install
+
       - name: Build
         run: npm run build
-      # - name: Upload production artifacts
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: build-artifacts
-      #     path: .next
-      
+
       - name: Deploy to VPS
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PROJECT_PATH: ${{ secrets.VPS_PROJECT_PATH }}
+          VPS_BUILD_PATH: /root/build
+          VPS_BLUE_PATH: /root/next-app-blue
+          VPS_GREEN_PATH: /root/next-app-green
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_PROJECT_PATH/.next"
-          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_PROJECT_PATH
-        
+
+          # Clean the build directory on the VPS
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BUILD_PATH/.next"
+
+          # Upload the new build
+          scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
+
+          # Check if green is online
+          GREEN_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show green | grep 'status' | awk '{print \$4}'")
+          
+          if [ "$GREEN_STATUS" = "online" ]; then
+            # Deploy to blue
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_BLUE_PATH/.next"
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "cp -r $VPS_BUILD_PATH/.next $VPS_BLUE_PATH/"
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 start blue"
+            BLUE_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show blue | grep 'status' | awk '{print \$4}'")
+            if [ "$BLUE_STATUS" = "online" ]; then
+              ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 stop green"
+            else
+              echo "Failed to start blue. Keeping green running."
+            fi
+          else
+            # Deploy to green
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "rm -rf $VPS_GREEN_PATH/.next"
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "cp -r $VPS_BUILD_PATH/.next $VPS_GREEN_PATH/"
+            ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 start green"
+            GREEN_STATUS=$(ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 show green | grep 'status' | awk '{print \$4}'")
+            if [ "$GREEN_STATUS" = "online" ]; then
+              ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "pm2 stop blue"
+            else
+              echo "Failed to start green. Keeping blue running."
+            fi
+          fi
