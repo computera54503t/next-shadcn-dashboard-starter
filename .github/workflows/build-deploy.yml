@@ -36,4 +36,4 @@ jobs:
           scp -o StrictHostKeyChecking=no -r .next $VPS_USERNAME@$VPS_HOST:$VPS_BUILD_PATH
 
           # Execute the deploy script
-          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "$DEPLOY_SCRIPT_PATH"
+          ssh -o StrictHostKeyChecking=no $VPS_USERNAME@$VPS_HOST "sh $DEPLOY_SCRIPT_PATH"
