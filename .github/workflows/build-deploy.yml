@@ -45,10 +45,10 @@ jobs:
             # Deploy to blue
             rm -rf next-app-blue/.next
             cp -r build/.next next-app-blue/
-            pm2 start 2
-            BLUE_STATUS=$(pm2 show blue | grep 'status' | awk '{print $4}')
+            /root/.nvm/versions/node/v20.15.0/bin/pm2 start 2
+            BLUE_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show blue | grep 'status' | awk '{print $4}')
             if [ "$BLUE_STATUS" = "online" ]; then
-              pm2 stop 1
+              /root/.nvm/versions/node/v20.15.0/bin/pm2 stop 1
             else
               echo "Failed to start blue. Keeping green running."
             fi
@@ -56,10 +56,10 @@ jobs:
             # Deploy to green
             rm -rf next-app-green/.next
             cp -r build/.next next-app-green/
-            pm2 start 1
-            GREEN_STATUS=$(pm2 show green | grep 'status' | awk '{print $4}')
+            /root/.nvm/versions/node/v20.15.0/bin/pm2 start 1
+            GREEN_STATUS=$(/root/.nvm/versions/node/v20.15.0/bin/pm2 show green | grep 'status' | awk '{print $4}')
             if [ "$GREEN_STATUS" = "online" ]; then
-              pm2 stop 2
+              /root/.nvm/versions/node/v20.15.0/bin/pm2 stop 2
             else
               echo "Failed to start green. Keeping blue running."
             fi
